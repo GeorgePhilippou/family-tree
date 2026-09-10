@@ -6,23 +6,47 @@ const branchPalette={
 13:['#356fba','#edf4ff'],14:['#aa7520','#fff6e4'],15:['#8055b5','#f5efff'],
 3:['#32815e','#eaf6ee'],16:['#b6547c','#fff0f5'],17:['#24838b','#e9f8f9'],18:['#bc6039','#fff0e8']
 };
-function branchId(id){const p=person(id);if(branchPalette[id])return id;if(branchPalette[p.partner])return p.partner;return p.parents.find(id=>branchPalette[id])}
-function tint(el,id){const branch=branchId(id);if(!branch)return;const [ink,fill]=branchPalette[branch];el.style.setProperty('--branch-ink',ink);el.style.setProperty('--branch-fill',fill);el.dataset.branch=String(branch)}
+function ownBranch(id){const p=person(id);if(branchPalette[id])return id;for(const pid of p.parents){const r=ownBranch(pid);if(r)return r}}
+function branchId(id){const p=person(id);return ownBranch(id)||(p.partner&&ownBranch(p.partner))}
+function shade(hex,amt){const n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255,t=amt>=0?255:0,f=Math.abs(amt),mix=c=>Math.round(c+(t-c)*f);return '#'+[mix(r),mix(g),mix(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
+function tint(el,id,y){const branch=branchId(id);if(!branch)return;let [ink,fill]=branchPalette[branch];if(y===810){ink=shade(ink,.16);fill=shade(fill,.34)}else if(y===1110){ink=shade(ink,.3);fill=shade(fill,.6)}el.style.setProperty('--branch-ink',ink);el.style.setProperty('--branch-fill',fill);el.dataset.branch=String(branch)}
 function transform(){tree.style.transform=`translate(${tx}px,${ty}px) scale(${z})`}
 function draw(){
  nodes.replaceChildren();positions=new Map();const paths=[],dashed=[],centres=[],branchPaths={};let cursor=120;
- for(const id of [13,14,15,3,16,17,18]){const bp=branchPaths[id]=[],p=person(id),children=people.filter(c=>c.parents.includes(id)),open=openFamilies.has(id),width=open?Math.max(360,children.length*180):180,x=cursor+width/2;centres.push(x);positions.set(id,[open?x-90:x,510]);
- if(open&&p.partner){positions.set(p.partner,[x+90,510]);bp.push(`M${x-90} 510H${x+90}`);if(children.length){const xs=children.map((c,i)=>x+(i-(children.length-1)/2)*180);bp.push(`M${x} 510V690 M${xs[0]} 690H${xs.at(-1)}`);children.forEach((c,i)=>{positions.set(c.id,[xs[i],810]);bp.push(`M${xs[i]} 690V738`)})}}
+ for(const id of [13,14,15,3,16,17,18]){
+ const bp=branchPaths[id]=[],p=person(id),children=people.filter(c=>c.parents.includes(id)),open=openFamilies.has(id);
+ const slots=children.map(c=>c.partner?Math.max(360,people.filter(g=>g.parents.includes(c.id)).length*180):180);
+ const span=slots.reduce((a,b)=>a+b,0),width=open?Math.max(360,span):180,x=cursor+width/2;
+ centres.push(x);positions.set(id,[open?x-90:x,510]);
+ if(open&&p.partner){
+  positions.set(p.partner,[x+90,510]);bp.push(`M${x-90} 510H${x+90}`);
+  if(children.length){
+   let cur=x-span/2;const childXs=children.map((c,i)=>{const cx=cur+slots[i]/2;cur+=slots[i];return cx});
+   bp.push(`M${x} 510V690 M${childXs[0]} 690H${childXs.at(-1)}`);
+   children.forEach((c,i)=>{
+    const cx=childXs[i];bp.push(`M${cx} 690V738`);
+    if(c.partner){
+     positions.set(c.id,[cx-90,810]);positions.set(c.partner,[cx+90,810]);bp.push(`M${cx-90} 810H${cx+90}`);
+     const grandkids=people.filter(g=>g.parents.includes(c.id));
+     if(grandkids.length){
+      const gxs=grandkids.map((g,gi)=>cx+(gi-(grandkids.length-1)/2)*180);
+      bp.push(`M${cx} 810V990 M${gxs[0]} 990H${gxs.at(-1)}`);
+      grandkids.forEach((g,gi)=>{positions.set(g.id,[gxs[gi],1110]);bp.push(`M${gxs[gi]} 990V1038`)});
+     }
+    } else positions.set(c.id,[cx,810]);
+   });
+  }
+ }
  cursor+=width+30;
  }
  const root=(centres[0]+centres.at(-1))/2;positions.set(1,[root-90,220]);positions.set(2,[root+90,220]);paths.push(`M${root-90} 220H${root+90} M${root} 220V385`);
  const childXs=[13,14,15,3,16,17,18].map(id=>positions.get(id)[0]);paths.push(`M${childXs[0]} 385H${childXs.at(-1)}`);[13,14,15,3,16,17,18].forEach((id,i)=>branchPaths[id].push(`M${childXs[i]} 385V438`));
  for(const id of [1,2]){if(expanded.has(id)){const [px]=positions.get(id),xs=[px];person(id).siblings.forEach((sid,i)=>{const x=px+(id===1?-1:1)*(i+1)*180;positions.set(sid,[x,220]);xs.push(x)});dashed.push(`M${Math.min(...xs)} 130H${Math.max(...xs)}`,...xs.map(x=>`M${x} 130V148`))}}
  lines.innerHTML=`<path d="${paths.join(' ')}"/><path class="sibling" d="${dashed.join(' ')}"/>${Object.entries(branchPaths).map(([id,parts])=>`<path style="stroke:${branchPalette[id][0]};stroke-width:3" d="${parts.join(' ')}"/>`).join('')}`;
- for(const [id,[x,y]] of positions){const p=person(id),b=document.createElement('button');b.className='person'+(id===3?' grandma':'')+(id===selected&&id!==3?' selected':'');tint(b,id);b.style.left=x+'px';b.style.top=y+'px';b.setAttribute('aria-label',`${p.name}, ${p.role}`);b.innerHTML=`<span class="avatar">${initials(p)}</span><strong>${p.name}</strong>`;b.onclick=()=>{if(!suppressClick)show(id)};nodes.append(b)}
- for(const id of [1,2,13,14,15,3,16,17,18]){const rootPerson=id<=2,p=person(id),children=people.filter(c=>c.parents.includes(id)),isOpen=(rootPerson?expanded:openFamilies).has(id),b=document.createElement('button'),[x,y]=positions.get(id);b.className='branch-toggle';tint(b,id);b.style.left=x+'px';b.style.top=(y+90)+'px';b.textContent=rootPerson?(isOpen?'− Hide siblings':`+ ${p.siblings.length} siblings`):(isOpen?'− Close branch':`+ Partner${children.length?' · '+children.length+' children':''}`);b.setAttribute('aria-expanded',String(isOpen));b.onclick=()=>{if(suppressClick)return;const set=rootPerson?expanded:openFamilies;isOpen?set.delete(id):set.add(id);draw()};nodes.append(b)}
+ for(const [id,[x,y]] of positions){const p=person(id),b=document.createElement('button');b.className='person'+(id===3?' grandma':'')+(id===selected&&id!==3?' selected':'');tint(b,id,y);b.style.left=x+'px';b.style.top=y+'px';b.setAttribute('aria-label',`${p.name}, ${p.role}`);b.innerHTML=`<span class="avatar">${initials(p)}</span><strong>${p.name}</strong>`;b.onclick=()=>{if(!suppressClick)show(id)};nodes.append(b)}
+ for(const id of [1,2,13,14,15,3,16,17,18]){const rootPerson=id<=2,p=person(id),children=people.filter(c=>c.parents.includes(id)),isOpen=(rootPerson?expanded:openFamilies).has(id),b=document.createElement('button'),[x,y]=positions.get(id);b.className='branch-toggle';tint(b,id,y);b.style.left=x+'px';b.style.top=(y+90)+'px';b.textContent=rootPerson?(isOpen?'− Hide siblings':`+ ${p.siblings.length} siblings`):(isOpen?'− Close branch':`+ Partner${children.length?' · '+children.length+' children':''}`);b.setAttribute('aria-expanded',String(isOpen));b.onclick=()=>{if(suppressClick)return;const set=rootPerson?expanded:openFamilies;isOpen?set.delete(id):set.add(id);draw()};nodes.append(b)}
 }
-function reveal(id){if(positions.has(id))return;const p=person(id);if([4,5,6].includes(id))expanded.add(1);else if([7,8,9,10,11,12,19].includes(id))expanded.add(2);else if(p.partner)openFamilies.add(p.partner);else if(p.parents.length)openFamilies.add(p.parents[0]);draw()}
+function reveal(id){if(positions.has(id))return;if([4,5,6].includes(id))expanded.add(1);else if([7,8,9,10,11,12,19].includes(id))expanded.add(2);else{const b=branchId(id);if(b)openFamilies.add(b)}draw()}
 function focus(id){reveal(id);const [x,y]=positions.get(id);z=1;tx=innerWidth/2-x;ty=innerHeight*.46-y;selected=id;draw();transform()}
 function frame(ps){const minX=Math.min(...ps.map(p=>p[0]))-105,maxX=Math.max(...ps.map(p=>p[0]))+105,minY=Math.min(...ps.map(p=>p[1]))-100,maxY=Math.max(...ps.map(p=>p[1]))+135;z=Math.max(.1,Math.min(1.1,(innerWidth-32)/(maxX-minX),(innerHeight-190)/(maxY-minY)));tx=(innerWidth-(maxX+minX)*z)/2;ty=90+(innerHeight-190-(maxY-minY)*z)/2-minY*z;transform()}
 function fit(){frame([...positions.values()])}
