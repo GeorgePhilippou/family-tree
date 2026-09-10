@@ -1,10 +1,11 @@
 const people=[
 {id:1,name:'John Perrin',role:'Jacqueline’s father',parents:[],siblings:[4,5,6]},
-{id:2,name:'Emily Wardle',role:'Jacqueline’s mother',parents:[],siblings:[7,8,9,10,11,12]},
+{id:2,name:'Emily Wardle',role:'Jacqueline’s mother',parents:[],siblings:[7,8,9,10,11,12,19]},
 {id:3,name:'Jacqueline Perrin',role:'Grandma',parents:[1,2],siblings:[13,14,15,16,17,18]},
 ...['Frank Perrin','Geoff Perrin','Winnie Perrin'].map((name,i)=>({id:i+4,name,role:'John’s sibling',parents:[],siblings:[1,4,5,6].filter(id=>id!==i+4)})),
-...['Jack Wardle','Alice Wardle','Lucy Wardle','Polly Wardle','Ruth Wardle','Albert Wardle'].map((name,i)=>({id:i+7,name,role:'Emily’s sibling',parents:[],siblings:[2,7,8,9,10,11,12].filter(id=>id!==i+7)})),
-...['John Perrin','Tony Perrin','Michael Perrin','Pat Perrin','Sheila Perrin','Barbara Perrin'].map((name,i)=>({id:i+13,name,role:'Jacqueline’s sibling',parents:[1,2],siblings:[3,13,14,15,16,17,18].filter(id=>id!==i+13)}))
+...['Jack Wardle','Alice Wardle','Lucy Wardle','Polly Wardle','Ruth Wardle','Albert Wardle'].map((name,i)=>({id:i+7,name,role:'Emily’s sibling',parents:[],siblings:[2,7,8,9,10,11,12,19].filter(id=>id!==i+7)})),
+...['John Perrin','Tony Perrin','Michael Perrin','Pat Perrin','Sheila Perrin','Barbara Perrin'].map((name,i)=>({id:i+13,name,role:'Jacqueline’s sibling',parents:[1,2],siblings:[3,13,14,15,16,17,18].filter(id=>id!==i+13)})),
+{id:19,name:'Hilda Wardle',role:'Emily’s sibling',parents:[],siblings:[2,7,8,9,10,11,12]}
 ];
 // Names are recorded as supplied; unspecified surnames remain open.
 const families=[
