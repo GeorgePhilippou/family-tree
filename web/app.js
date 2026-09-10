@@ -9,7 +9,7 @@ const branchPalette={
 function ownBranch(id){const p=person(id);if(branchPalette[id])return id;for(const pid of p.parents){const r=ownBranch(pid);if(r)return r}}
 function branchId(id){const p=person(id);return ownBranch(id)||(p.partner&&ownBranch(p.partner))}
 function shade(hex,amt){const n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255,t=amt>=0?255:0,f=Math.abs(amt),mix=c=>Math.round(c+(t-c)*f);return '#'+[mix(r),mix(g),mix(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
-function tint(el,id,y){const branch=branchId(id);if(!branch)return;let [ink,fill]=branchPalette[branch];if(y===810){ink=shade(ink,.16);fill=shade(fill,.34)}else if(y===1110){ink=shade(ink,.3);fill=shade(fill,.6)}el.style.setProperty('--branch-ink',ink);el.style.setProperty('--branch-fill',fill);el.dataset.branch=String(branch)}
+function tint(el,id,y){const branch=ownBranch(id);if(!branch)return;let [ink,fill]=branchPalette[branch];if(y===810){ink=shade(ink,.16);fill=shade(fill,.34)}else if(y===1110){ink=shade(ink,.3);fill=shade(fill,.6)}el.style.setProperty('--branch-ink',ink);el.style.setProperty('--branch-fill',fill);el.dataset.branch=String(branch)}
 function transform(){tree.style.transform=`translate(${tx}px,${ty}px) scale(${z})`}
 function draw(){
  nodes.replaceChildren();positions=new Map();const paths=[],dashed=[],centres=[],branchPaths={};let cursor=120;
@@ -24,8 +24,9 @@ function draw(){
    let cur=x-span/2;const childXs=children.map((c,i)=>{const cx=cur+slots[i]/2;cur+=slots[i];return cx});
    bp.push(`M${x} 510V690 M${childXs[0]} 690H${childXs.at(-1)}`);
    children.forEach((c,i)=>{
-    const cx=childXs[i];bp.push(`M${cx} 690V738`);
+    const cx=childXs[i];
     if(c.partner){
+     bp.push(`M${cx} 690V810`);
      positions.set(c.id,[cx-90,810]);positions.set(c.partner,[cx+90,810]);bp.push(`M${cx-90} 810H${cx+90}`);
      const grandkids=people.filter(g=>g.parents.includes(c.id));
      if(grandkids.length){
@@ -33,7 +34,7 @@ function draw(){
       bp.push(`M${cx} 810V990 M${gxs[0]} 990H${gxs.at(-1)}`);
       grandkids.forEach((g,gi)=>{positions.set(g.id,[gxs[gi],1110]);bp.push(`M${gxs[gi]} 990V1038`)});
      }
-    } else positions.set(c.id,[cx,810]);
+    } else {bp.push(`M${cx} 690V738`);positions.set(c.id,[cx,810])}
    });
   }
  }
