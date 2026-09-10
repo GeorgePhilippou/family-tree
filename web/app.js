@@ -2,6 +2,7 @@ const view=document.querySelector('#viewport'),tree=document.querySelector('#tre
 let z=1,tx=0,ty=0,expanded=new Set([1,2]),positions=new Map(),selected=3;
 const person=id=>people.find(p=>p.id===id),initials=p=>p.name.split(' ').map(n=>n[0]).join('');
 const branchPalette={
+1:['#8a6f4a','#f6f1e7'],2:['#8a6f4a','#f6f1e7'],
 13:['#356fba','#edf4ff'],14:['#aa7520','#fff6e4'],15:['#8055b5','#f5efff'],
 3:['#32815e','#eaf6ee'],16:['#b6547c','#fff0f5'],17:['#24838b','#e9f8f9'],18:['#bc6039','#fff0e8']
 };
