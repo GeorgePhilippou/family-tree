@@ -23,10 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      - name: Stamp version
-        run: |
-          version="$(date -u +'%-d %b %Y, %H:%M UTC') · $(git rev-parse --short HEAD)"
-          sed -i "s/__VERSION__/${version}/" web/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web

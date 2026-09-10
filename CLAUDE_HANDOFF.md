@@ -45,3 +45,7 @@ Use the bundled Node runtime if `node` is unavailable:
 The shared password is stored only in `.local/Family access.txt`. Do not commit it, expose it in source, or include it in chat unless the user explicitly asks for it.
 
 **Note for GitHub Pages:** `web/index.html` and `web/manifest.webmanifest` use paths relative to `web/` (no leading `/`), not root-relative, because the site is served from the `/family-tree/` subpath, not the domain root — a root-relative path 404s here. Relative paths also work fine if the Worker build is redeployed at a domain root, so this doesn't need to change back.
+
+## Version label
+
+`web/index.html` has a small `<p class="version">Version X.Y</p>` in the bottom-left corner (styled in `web/style.css`), by the user's request so they can tell whether a device (especially one relying on the offline service-worker cache) is showing a stale copy. It's a plain hardcoded string, not auto-generated. **Bump it by 0.1 on every future change to this app**, as part of the same commit.
