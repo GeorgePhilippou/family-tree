@@ -38,10 +38,10 @@ Use the bundled Node runtime if `node` is unavailable:
 
 ## Hosting status
 
-The protected Site project is configured in `.openai/hosting.json`. The protected Worker version is saved and deployed at:
+**Live site (current):** `https://georgephilippou.github.io/family-tree/`, served by GitHub Pages (public repo `GeorgePhilippou/family-tree`, deployed via `.github/workflows/pages.yml` from the `web/` folder on every push to `main`). No password gate — the user decided the data (names/relationships only, no contact info or photos) doesn't need one, and the link is only shared within the family. `robots.txt` and a `noindex` meta tag ask crawlers not to index it, but the repo itself is public (visible via GitHub search / the account's public repo list) since free GitHub accounts require a public repo for Pages.
 
-`https://family-branches-george.gap2000.chatgpt.site`
-
-The Site is currently invitation-only at the hosting layer, so a visitor without the workspace account cannot reach the app login page. The user explicitly approved making the Site publicly reachable while keeping the family tree behind the shared password, but the access change was rejected because the hosting account reached its usage limit. Retry the public access change after the limit resets; do not make the repository or family data public as a workaround.
+**Password-protected path (dormant, not deleted):** `server/auth.mjs`, `server/auth.test.mjs`, and `scripts/build.mjs` still implement the original signed-session/password design and can be redeployed later (e.g. to Cloudflare Workers — the handler is already a standard `fetch(request, env)` module, so no code changes needed) if the user wants the gate back. The old ChatGPT-hosting-based deployment (`family-branches-george.gap2000.chatgpt.site`, `.openai/hosting.json`) is superseded by the above and was abandoned because it required ongoing hosting credits and was stuck invitation-only.
 
 The shared password is stored only in `.local/Family access.txt`. Do not commit it, expose it in source, or include it in chat unless the user explicitly asks for it.
+
+**Note for GitHub Pages:** `web/index.html` and `web/manifest.webmanifest` use paths relative to `web/` (no leading `/`), not root-relative, because the site is served from the `/family-tree/` subpath, not the domain root — a root-relative path 404s here. Relative paths also work fine if the Worker build is redeployed at a domain root, so this doesn't need to change back.
