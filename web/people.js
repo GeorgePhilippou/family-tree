@@ -17,6 +17,7 @@ const families=[
 [17,'George Whitehead',[]],
 [3,'Albert Darlington',['Tracey Darlington','Jonathan Darlington']],
 [37,'Panayiotis Philippou',['George Philippou','Mario Philippou']],
-[25,'Katrina Ellison',['Miles Tootell','Arlo Tootell']]
+[25,'Katrina Ellison',['Miles Tootell','Arlo Tootell']],
+[22,'Dana Fell',[]]
 ];
 for(const [id,name,children] of families){const parent=people.find(p=>p.id===id),partnerId=people.length+1;parent.partner=partnerId;people.push({id:partnerId,name,role:`${parent.name}’s spouse`,partner:id,parents:[],siblings:[]});const childIds=[];for(const name of children){const childId=people.length+1;childIds.push(childId);people.push({id:childId,name,role:`${parent.name} and ${people.find(p=>p.id===partnerId).name}’s child`,parents:[id,partnerId],siblings:[]})}for(const childId of childIds)people.find(p=>p.id===childId).siblings=childIds.filter(id=>id!==childId)}
